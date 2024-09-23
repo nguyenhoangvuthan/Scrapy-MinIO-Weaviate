@@ -3,42 +3,22 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import io
-
+import os
+from dotenv import load_dotenv
+from pathlib import Path
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-from minio import Minio, S3Error
+from common.config import ClientConfig
+from services.minio.minioclient import MinioClient
+
 #
-#
-def write_file_to_minio(bucket_name: str, file_name: str, line_as_bytes: bytes):
-    client = Minio(
-        "127.0.0.1:9000",
-        access_key="lWbO5FrsFcp6xC04aqgy",
-        secret_key="amwk7ARIFBhwfn8uix4HGXVq048laDzoaG96gL72",
-        secure=False
-    )
-    try:
-        if not client.bucket_exists(bucket_name):
-            client.make_bucket(bucket_name)
-            print(f"Bucket {bucket_name} created.")
-        else:
-            print(f"Bucket {bucket_name} already exists.")
-    except S3Error as e:
-        print(f"Error occurred while checking/creating bucket: {e}")
+def write_file_to_minio(minio_client: MinioClient, bucket_name: str, file_name: str, line_as_bytes: bytes):
+    minio_client.check_and_make_bucket(bucket_name)
 
     # Create a BytesIO stream from the bytes
     line_as_a_stream = io.BytesIO(line_as_bytes)
 
-    try:
-        # Upload to MinIO
-        client.put_object(
-            bucket_name,
-            file_name,
-            line_as_a_stream,
-            length=len(line_as_bytes)
-        )
-        print(f"Successfully uploaded {file_name} to {bucket_name}.")
-    except S3Error as e:
-        print(f"Error occurred while uploading to MinIO: {e}")
+    minio_client.upload_file_to_minio(bucket_name, file_name, line_as_bytes, line_as_a_stream)
 
 
 class QuotestoscrapePipeline:
@@ -49,12 +29,18 @@ class QuotestoscrapePipeline:
         pass
 
     def close_spider(self, spider):
-        combined_data = ''.join(self.items).encode('utf-8')
-        write_file_to_minio(
-            bucket_name="test-minio-nhvthan",
-            file_name="my_file_latest.txt",
-            line_as_bytes=combined_data
+        dotenv_path = Path('.dev.env')
+        load_dotenv(dotenv_path=dotenv_path)
+
+        minio_client: MinioClient = MinioClient(
+            config=ClientConfig(
+                minio_access_key= os.getenv('MINIO_ACCESS_KEY'),
+                minio_secret_key = os.getenv('MINIO_SECRET_KEY')
+            )
         )
+        print("minio_client: ", minio_client)
+        combined_data = ''.join(self.items).encode('utf-8')
+        write_file_to_minio(minio_client, 'quotestoscrape', 'data', combined_data)
 
     def process_item(self, item, spider):
         # Convert the item to a dictionary using ItemAdapter

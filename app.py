@@ -8,6 +8,7 @@ app = FastAPI()
 
 class SpiderRequest(BaseModel):
     spider_name: str
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
