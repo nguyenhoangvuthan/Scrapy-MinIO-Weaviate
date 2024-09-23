@@ -57,15 +57,26 @@ class QuotestoscrapePipeline:
         )
 
     def process_item(self, item, spider):
-            # Convert the item to a string and write it to the file
-            line = f"Quote: {item.get('quote')}\n" \
-                   f"Author: {item.get('author')}\n" \
-                   f"Author About Link: {item.get('author_about_link')}\n" \
-                   f"Tags: {', '.join(item.get('tags', []))}\n" \
-                   f"Author Born Date: {item.get('author_born_date')}\n" \
-                   f"Author Born Location: {item.get('author_born_location')}\n" \
-                   f"\n"  # Add an empty line between items
-            self.items.append(line)  # Store the line instead of writing immediately
-            return item
+        # Convert the item to a dictionary using ItemAdapter
+        item_dict = ItemAdapter(item).asdict()
+
+        # Process the item
+        quote = item_dict.get('quote')
+        author = item_dict.get('author')
+        author_about_link = item_dict.get('author_about_link')
+        tags = item_dict.get('tags', [])
+        author_born_date = item_dict.get('author_born_date')
+        author_born_location = item_dict.get('author_born_location')
+
+        line = f"Quote: {quote}\n" \
+               f"Author: {author}\n" \
+               f"Author About Link: {author_about_link}\n" \
+               f"Tags: {', '.join(tags)}\n" \
+               f"Author Born Date: {author_born_date}\n" \
+               f"Author Born Location: {author_born_location}\n" \
+               f"\n"
+
+        self.items.append(line)
+        return item
 
 

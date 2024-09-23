@@ -28,7 +28,7 @@ class QuotesSpiderSpider(scrapy.Spider):
         quote_item['quote'] = quote_element.xpath('./span[@class="text"]/text()').get()
         quote_item['author'] = quote_element.xpath('./span/small[@class="author"]/text()').get()
         quote_item['author_about_link'] = f"{self.absolute_link}/{author_about_link}"
-        quote_item['tags'] = quote_element.xpath('./div[@class="tags"]/a/text()').get()
+        quote_item['tags'] = quote_element.xpath('./div[@class="tags"]/a/text()').getall()
         quote_item['author_born_date'] = response.xpath('//span[@class="author-born-date"]/text()').get()
         quote_item['author_born_location'] = response.xpath('//span[@class="author-born-location"]/text()').get()[3:]
         quote_item['author_description'] = response.xpath('//div[@class="author-description"]/text()').get().strip()

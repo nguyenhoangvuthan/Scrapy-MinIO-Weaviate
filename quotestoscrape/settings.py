@@ -92,8 +92,3 @@ REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
-# FEEDS = {
-#     'output1.txt': {
-#         'format': 'jsonlines',  # You can use 'jsonlines' for line-delimited JSON
-#     },
-# }
